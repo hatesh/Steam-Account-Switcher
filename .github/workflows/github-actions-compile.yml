@@ -1,0 +1,40 @@
+name: GitHub Actions Compuler
+run-name: ${{ github.actor }} has pushed a new build 🚀
+on: [push]
+jobs:
+  Compile-to-EXE:
+    runs-on: windows-latest
+    steps:
+      - run: Write-Host "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: Write-Host "🐧 This job is now running on a ${{ runner.os }} server hosted by GitHub!"
+      - run: Write-Host "🔎 The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
+      - name: Check out repository code
+        uses: actions/checkout@v4
+      - run: Write-Host "💡 The ${{ github.repository }} repository has been cloned to the runner."
+      - run: Write-Host "🖥️ The workflow is now ready to test your code on the runner."
+      - name: List files in the repository
+        run: ls ${{ github.workspace }}
+      - name: Install PS2EXE
+        shell: powershell
+        run: Install-Module ps2exe -Force
+      - name: Enter Workspace
+        shell: powershell
+        run: cd ${{ github.workspace }}
+      - name: Compile Script
+        shell: powershell
+        run: >
+          Invoke-ps2exe
+          -inputFile ".\switch_steam.ps1"
+          -outputFile "haboosh_steam_switcher.exe"
+          -title "Haboosh Steam Account Switcher"
+          -iconFile ".\icon.ico"
+          -verbose
+      - name: Archive executable
+        shell: powershell
+        run: Compress-Archive haboosh_steam_switcher.exe "haboosh_steam_switcher-${{ github.sha }}.zip"
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: haboosh-steam-switcher
+          path: "haboosh_steam_switcher-${{ github.sha }}.zip"
+      - run: Write-Host "🍏 This job's status is ${{ job.status }}."
