@@ -1,5 +1,35 @@
+param (
+    [switch]$SkipSplash
+)
+
 $USERNAME_FILE = "C:\Users\${env:USERNAME}\steam_usernames.txt"
 $global:EVENT_LOOP = $true
+
+
+
+function CreateShortcut {
+    # Get the location of the script
+    $MyScriptPath = if (-not $PSScriptRoot) {
+        $exePath = [Environment]::GetCommandLineArgs()[0]
+        $exeDirectory = Split-Path -Parent (Convert-Path $exePath)
+        Join-Path -Path $exeDirectory -ChildPath "haboosh_steam_switcher.exe"
+    } else {
+        $scriptName = [System.IO.Path]::GetFileName($MyInvocation.MyCommand.Path)
+        Join-Path -Path $PSScriptRoot -ChildPath $scriptName
+    }
+    # Define the path for the shortcut on the desktop
+    $ShortcutPath = [Environment]::GetFolderPath("Desktop") + "\Haboosh Steam Switcher.lnk"
+    # Create a new WScript.Shell object
+    $WScriptObj = New-Object -ComObject "WScript.Shell"
+    # Create the shortcut using the specified path
+    $shortcut = $WScriptObj.CreateShortcut($ShortcutPath)
+    # Set the target path for the shortcut
+    $shortcut.TargetPath = $MyScriptPath
+    # Add the Skip Spash argument
+    $shortcut.Arguments = "-SkipSplash"
+    # Save the shortcut
+    $shortcut.Save()
+}
 
 function OpenUsernameFile {
     Invoke-Item "${USERNAME_FILE}"
@@ -218,7 +248,10 @@ function Redraw {
 }
 
 # ACTUAL CODE LOOP
-Splash
+CreateShortcut
+if (-not ($SkipSplash)) {
+    Splash
+}
 while ($global:EVENT_LOOP) {
     Menu
 }
